@@ -33,6 +33,17 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="toolbar">
+                <!-- Add to your toolbar or menu in index.html -->
+<button id="loadFileBtn" class="action-button">
+  <span class="icon">📂</span>
+  Load From File
+</button>
+<!-- Add to your toolbar or menu in index.html -->
+<button id="saveFileBtn" class="action-button">
+  <span class="icon">💾</span>
+  Save To File
+</button>
+
                 <select id="languageSelect">
                     <option value="javascript">JavaScript</option>
                     <option value="python">Python</option>
@@ -61,8 +72,11 @@
         font-size: 14px;">
         ⚪ Checking...
     </div>
+    <!-- Add near the end of your HTML file, before app.js -->
+<script src="js/file-system.js"></script>
+<script src="js/ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-    <script src="scripts/app.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>

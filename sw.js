@@ -11,7 +11,9 @@ const APP_SHELL = [
     '/',
     '/index.html',
     '/styles/main.css',
-    '/scripts/app.js',
+    '/js/app.js',
+    '/js/file-system.js',
+    '/js/ui.js',
     '/offline.html',
 ];
 
@@ -60,30 +62,6 @@ self.addEventListener('activate', event => {
             })
     );
 });
-
-/*self.addEventListener('fetch', event => {
- // Skip cache if the request explicitly asks for fresh content
- if (event.request.headers.get('Cache-Control') === 'no-cache') {
- event.respondWith(fetch(event.request));
- return;
- }
-
- // Continue with the rest of your fetch handler...
- const url = new URL(event.request.url);
- // ...
-}); */
-/* function fetchFreshData() {
- fetch('/api/data', {
- headers: {
- 'Cache-Control': 'no-cache'
- }
- })
- .then(response => response.json())
- .then(data => {
- // Process fresh data
- });
-}
-*/
 
 // Fetch event - will be implemented in next steps
 self.addEventListener('fetch', event => {
