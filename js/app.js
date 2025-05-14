@@ -1,7 +1,35 @@
-// Add this near the top of your app.js file
+// Common status message function for all modules
+function showMessage(message, isError = false) {
+  // Create or get status message element
+  let statusElement = document.getElementById('status-message');
+  if (!statusElement) {
+    statusElement = document.createElement('div');
+    statusElement.id = 'status-message';
+    document.body.appendChild(statusElement);
+  }
+  
+  // Set message text and class
+  statusElement.textContent = message;
+  statusElement.className = isError ? 'error' : '';
+  
+  // Show message
+  statusElement.style.display = 'block';
+  
+  // Clear any existing timeout
+  if (statusElement.timeout) {
+    clearTimeout(statusElement.timeout);
+  }
+  
+  // Auto hide after delay
+  statusElement.timeout = setTimeout(() => {
+    statusElement.style.display = 'none';
+  }, 3000);
+}
+
+// Make available to window
+window.showMessage = showMessage;
 
 // Register the Service Worker
-
 function updateCaches() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistration()
@@ -118,6 +146,32 @@ document.addEventListener('DOMContentLoaded', () => {
         showMessage('Snippet saved!');
     }
 
+    function saveSnippet() {
+  // Your existing save code
+  
+  // After successful save, show notification
+  const snippetName = getCurrentSnippetName() || 'Snippet';
+  
+  NotificationManager.showNotification(
+    'Snippet Saved',
+    `Your snippet "${snippetName}" has been saved`,
+    {
+      action: 'openSnippet',
+      snippetId: currentSnippetId
+    }
+  );
+    }
+
+    // Helper function to get snippet name
+    function getCurrentSnippetName() {
+    if (!currentSnippetId) return null;
+    
+    const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
+    const currentSnippet = snippets.find(s => s.id === currentSnippetId);
+    
+    return currentSnippet ? (currentSnippet.name || `Snippet ${currentSnippet.language}`) : null;
+    }
+
     // Load snippet for editing
     function loadSnippet(id) {
         const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
@@ -173,7 +227,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteSnippet(btn.dataset.id);
             });
         });
+
+          document.querySelectorAll('.snippet-item').forEach(item => {
+    // Add reminder button if not already present
+    if (!item.querySelector('.reminder-btn')) {
+      const reminderBtn = document.createElement('button');
+      reminderBtn.className = 'reminder-btn';
+      reminderBtn.title = 'Set reminder for this snippet';
+      reminderBtn.innerHTML = '<span class="icon">⏰</span>';
+      reminderBtn.dataset.id = item.dataset.id;
+      
+      // Find the actions section or create one
+      let actionsSection = item.querySelector('.snippet-actions');
+      if (!actionsSection) {
+        actionsSection = document.createElement('div');
+        actionsSection.className = 'snippet-actions';
+        item.appendChild(actionsSection);
+      }
+      
+      actionsSection.appendChild(reminderBtn);
+      
+      // Add event listener
+      reminderBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent triggering snippet selection
+        setReminderForSnippet(item.dataset.id);
+      });
     }
+  });
+}
+
+// Function to set reminder
+function setReminderForSnippet(snippetId) {
+  // Find snippet details
+  const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
+  const snippet = snippets.find(s => s.id === snippetId);
+  
+  if (!snippet) {
+    showMessage('Snippet not found', true);
+    return;
+  }
+  
+  // Prompt for time
+  const minutes = prompt('Set reminder in minutes:', '30');
+  
+  if (minutes && !isNaN(minutes)) {
+    const snippetName = snippet.name || `Snippet ${snippet.language}`;
+    
+    NotificationManager.scheduleNotification(
+      'Snippet Reminder',
+      `Don't forget to work on "${snippetName}"`,
+      parseInt(minutes)
+    );
+  }
+}
+    }
+
+    // Update your snippet rendering function that creates the snippet list items
 
     // Delete snippet
     function deleteSnippet(id) {
@@ -207,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Highlight selected snippet
     function highlightSelectedSnippet(id) {
-        document.querySelectorAll('.snippet-item').forEach(item => {
+        document.querySelectorAll('.snippet-item').forEach((item) => {
             item.classList.toggle('selected', item.dataset.id === id);
         });
     }
@@ -395,6 +504,7 @@ function createSnippetFromFile({ name, language, code }) {
 
 // Handle protocol invocation
 document.addEventListener('DOMContentLoaded', () => {
+    
     // Check if we were launched via protocol
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get('snippet');
@@ -417,6 +527,68 @@ document.addEventListener('DOMContentLoaded', () => {
             displayRecentSnippets();
         }
     }
+});
+
+// Register application-specific keyboard shortcuts
+function registerAppShortcuts() {
+  // Make sure keyboard manager is loaded
+  if (!window.KeyboardManager) {
+    console.error('Keyboard Manager not loaded');
+    return;
+  }
+  
+  // Load file with Ctrl+O
+  KeyboardManager.registerShortcut('loadFile', {
+    key: 'o',
+    ctrl: true, 
+    description: 'Load file from disk',
+    handler: () => {
+      if (window.FileSystem && typeof FileSystem.loadFromFile === 'function') {
+        FileSystem.loadFromFile({
+          onSuccess: (file) => {
+            showMessage(`Loaded ${file.name}`);
+          },
+          onError: (error) => {
+            showMessage(`Error loading file: ${error}`, true);
+          }
+        });
+      }
+    }
+  });
+  
+  // Save file with Ctrl+S
+  KeyboardManager.registerShortcut('saveFile', {
+    key: 's',
+    ctrl: true,
+    shift: true,
+    description: 'Save to file',
+    handler: () => {
+      if (window.FileSystem && typeof FileSystem.saveToFile === 'function') {
+        // Get current editor content
+        const editor = document.getElementById('codeEditor');
+        const language = document.getElementById('languageSelect')?.value || 'javascript';
+        
+        if (editor) {
+          FileSystem.saveToFile({
+            content: editor.value,
+            language: language,
+            onSuccess: (filename) => {
+              showMessage(`Saved to ${filename}`);
+            },
+            onError: (error) => {
+              showMessage(`Error saving file: ${error}`, true);
+            }
+          });
+        }
+      }
+    }
+  });
+}
+
+// Call during initialization
+document.addEventListener('DOMContentLoaded', () => {
+  // Register app-specific shortcuts
+  registerAppShortcuts();
 });
 
 // Function to load snippet by ID

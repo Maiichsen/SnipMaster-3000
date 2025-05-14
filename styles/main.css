@@ -279,3 +279,163 @@ font-size: 0.8em;
         background-color: rgba(231, 76, 60, 0.1);
     }
 }
+
+/* Window Controls Overlay styles */
+@media (display-mode: window-controls-overlay) {
+  body {
+    margin-top: env(titlebar-area-height, 33px);
+  }
+  
+  .app-header {
+    position: fixed;
+    left: env(titlebar-area-x, 0);
+    top: env(titlebar-area-y, 0);
+    width: env(titlebar-area-width, 100%);
+    height: env(titlebar-area-height, 33px);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+  }
+}
+
+/* Display mode specific styles */
+[data-display-mode="standalone"] .browser-only,
+[data-display-mode="window-controls-overlay"] .browser-only,
+[data-display-mode="fullscreen"] .browser-only {
+  display: none;
+}
+
+[data-display-mode="browser"] .app-only {
+  display: none;
+}
+
+/* Status indicators */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f5f5f5;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-indicator.online {
+  color: #2ecc71;
+}
+
+.status-indicator.offline {
+  color: #e74c3c;
+}
+
+/* Wake lock button */
+#wake-lock-btn.active {
+  background-color: #2ecc71;
+}
+
+/* Keyboard shortcut styles */
+#keyboard-help-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  display: none;
+  z-index: 1000;
+  max-width: 500px;
+  width: 90%;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #777;
+}
+
+.dialog-content {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shortcut-table td {
+  padding: 8px 5px;
+  border-bottom: 1px solid #eee;
+}
+
+.shortcut-table tr:last-child td {
+  border-bottom: none;
+}
+
+.key {
+  display: inline-block;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  margin: 0 2px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  font-family: monospace;
+}
+
+#shortcut-indicator {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#shortcut-indicator.visible {
+  opacity: 1;
+}
+
+.shortcut-keys {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.shortcut-description {
+  font-size: 0.9rem;
+}
