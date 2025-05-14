@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SnipMaster">
+    <title>SnipMaster 3000</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <link rel="apple-touch-icon" href="/images/unicorn.png">
+    <meta name="msapplication-TileImage" content="/images/icon-144.png">
+    <meta name="msapplication-TileColor" content="#3498db">
+      <link rel="icon" href="/images/kitty.png">
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>SnipMaster 3000</h1>
+                <button id="newSnippetBtn">+ New Snippet</button>
+            </div>
+            <div class="snippet-list" id="snippetList">
+                <!-- Snippets will be listed here -->
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="toolbar">
+                <select id="languageSelect">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                </select>
+                <button id="saveBtn">Save</button>
+            </div>
+            <div class="editor-container">
+                <textarea id="codeEditor" placeholder="Type your code here..."></textarea>
+                <div id="codePreview"class="code-preview"></div>
+            </div>
+            <button id="install-button" style="display: none;" class="install-button">
+                Install SnipMaster 3000
+            </button>
+        </main>
+    </div>
+    <div id="connection-status"
+        style="position: fixed; 
+        bottom: 10px; 
+        right: 10px; 
+        background: white; 
+        padding: 5px 10px; 
+        border-radius: 4px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        font-size: 14px;">
+        ⚪ Checking...
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="scripts/app.js"></script>
+</body>
+
+</html>
+        
