@@ -144,10 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         displaySnippets();
 
         showMessage('Snippet saved!');
-    }
-
-    function saveSnippet() {
-  // Your existing save code
   
   // After successful save, show notification
   const snippetName = getCurrentSnippetName() || 'Snippet';
@@ -280,7 +276,7 @@ function setReminderForSnippet(snippetId) {
     );
   }
 }
-    }
+    
 
     // Update your snippet rendering function that creates the snippet list items
 
