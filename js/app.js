@@ -29,7 +29,7 @@ function showMessage(message, isError = false) {
 // Gør funktionen tilgængelig globalt
 window.showMessage = showMessage;
 
-// Registrer Service Worker
+// Registrer Service Worker for offline funktionalitet
 function updateCaches() {
 	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.getRegistration().then(registration => {
@@ -47,7 +47,7 @@ if (refreshButton) {
 	refreshButton.addEventListener('click', updateCaches);
 }
 
-// Funktion til at registrere Service Worker
+// Funktion til at registrere Service Worker for offline funktionalitet og caching
 function registerServiceWorker() {
 	if ('serviceWorker' in navigator) {
 		window.addEventListener('load', () => {
@@ -72,7 +72,7 @@ function registerServiceWorker() {
 	}
 }
 
-// Valgfri funktion til at vise Service Worker status
+// Funktion til at vise Service Worker status i brugergrænsefladen
 function showServiceWorkerStatus(message, isError = false) {
 	// Opret status element hvis det ikke findes
 	let statusElement = document.getElementById('sw-status');
@@ -95,27 +95,28 @@ function showServiceWorkerStatus(message, isError = false) {
 // Kald registreringsfunktionen
 registerServiceWorker();
 
+// Initialiser applikationen når DOM'en er indlæst
 document.addEventListener('DOMContentLoaded', () => {
-	// Hent DOM elementer
+	// Hent DOM elementer til brug i applikationen
 	const codeEditor = document.getElementById('codeEditor');
 	const languageSelect = document.getElementById('languageSelect');
 	const saveBtn = document.getElementById('saveBtn');
 	const newSnippetBtn = document.getElementById('newSnippetBtn');
 	const snippetList = document.getElementById('snippetList');
 
-	// Hold styr på nuværende snippet
+	// Hold styr på det aktuelle snippet der redigeres
 	let currentSnippetId = null;
 
-	// Tilføj kategorier til værktøjslinjen
+	// Tilføj kategorier til værktøjslinjen for bedre organisering
 	const categories = ['General', 'Utils', 'Components', 'Scripts'];
 	const categorySelect = document.createElement('select');
 	categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 	document.querySelector('.toolbar').appendChild(categorySelect);
 
-	// Funktion til at gemme snippets
+	// Funktion til at gemme snippets lokalt og synkronisere med server
 	function saveSnippet() {
 		const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
-
+		// 1. Gem lokalt
 		const snippet = {
 			code: codeEditor.value,
 			language: languageSelect.value,
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		localStorage.setItem('snippets', JSON.stringify(snippets));
 		displaySnippets();
-
+		// 2. Vis besked
 		showMessage('Snippet gemt!');
 
 		// Efter succesfuld gemning, vis notifikation
@@ -152,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-	// Hjælpefunktion til at få snippet navn
+	// Hjælpefunktion til at hente navnet på det aktuelle snippet
 	function getCurrentSnippetName() {
 		if (!currentSnippetId) return null;
 
@@ -162,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		return currentSnippet ? currentSnippet.name || `Snippet ${currentSnippet.language}` : null;
 	}
 
-	// Indlæs snippet til redigering
+	// Indlæs et eksisterende snippet til redigering
 	function loadSnippet(id) {
 		const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
 		const snippet = snippets.find(s => s.id === id);
@@ -178,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Vis snippets med forbedret UI
+	// Vis alle snippets i listen med forbedret UI og interaktivitet
 	function displaySnippets() {
 		const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
 		snippetList.innerHTML = snippets
@@ -251,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-	// Function to set reminder
+	// Funktion til at sætte påmindelser for et specifikt snippet
 	function setReminderForSnippet(snippetId) {
 		// Find snippet details
 		const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
@@ -276,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Delete snippet
+	// Slet et snippet efter bekræftelse
 	function deleteSnippet(id) {
 		if (confirm('Are you sure you want to delete this snippet?')) {
 			let snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	// Show status message
+	// Vis midlertidige statusbeskeder i brugergrænsefladen
 	function showMessage(text) {
 		const message = document.createElement('div');
 		message.className = 'status-message';
@@ -306,14 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		}, 2000);
 	}
 
-	// Highlight selected snippet
+	// Fremhæv det valgte snippet i listen
 	function highlightSelectedSnippet(id) {
 		document.querySelectorAll('.snippet-item').forEach(item => {
 			item.classList.toggle('selected', item.dataset.id === id);
 		});
 	}
 
-	// Event listeners
+	// Tilføj event listeners til knapper og interaktioner
 	saveBtn.addEventListener('click', saveSnippet);
 
 	newSnippetBtn.addEventListener('click', () => {
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	displaySnippets();
 });
 
-// Add to your existing JavaScript
+// Opdater forhåndsvisningen af koden med syntax highlighting
 function updatePreview() {
 	const code = codeEditor.value;
 	const language = languageSelect.value;
@@ -340,27 +341,24 @@ function updatePreview() {
 	hljs.highlightElement(previewDiv.querySelector('code'));
 }
 
-// Helper function to escape HTML
+// Hjælpefunktion til at sikre HTML-tegn vises korrekt
 function escapeHtml(text) {
 	const div = document.createElement('div');
 	div.textContent = text;
 	return div.innerHTML;
 }
 
-// Add to your event listeners
-codeEditor.addEventListener('input', updatePreview);
-languageSelect.addEventListener('change', updatePreview);
-
-// Call after loading a snippet
+// Indlæs et snippet og opdater forhåndsvisningen
 function loadSnippet(id) {
 	// ... existing loadSnippet code ...
 	updatePreview();
 }
 
+// Opdater forbindelsesstatus og synkroniser med server hvis online
 function updateConnectionStatus() {
 	const statusElement = document.getElementById('connection-status');
 	if (!statusElement) return;
-
+	// 3. Hvis online, synkroniser med server
 	if (navigator.onLine) {
 		statusElement.innerHTML = '🟢 Online';
 		statusElement.style.backgroundColor = '#f1fff0';
@@ -370,36 +368,36 @@ function updateConnectionStatus() {
 	}
 }
 
-// Update status when online/offline events occur
+// Opdater status når online/offline begivenheder opstår
 window.addEventListener('online', updateConnectionStatus);
 window.addEventListener('offline', updateConnectionStatus);
 
-// Initial check
+// Indledende tjek
 document.addEventListener('DOMContentLoaded', updateConnectionStatus);
 
-// PWA Installation
+// Håndter PWA installationsprocessen
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', e => {
-	// Prevent Chrome from automatically showing the prompt
+	// Forhindre Chrome i automatisk at vise prompten
 	e.preventDefault();
 
-	// Stash the event so it can be triggered later
+	// Gem begivenheden så den kan aktiveres senere
 	deferredPrompt = e;
 
-	// Show the install button
+	// Vis installationsknappen
 	const installButton = document.getElementById('install-button');
 	if (installButton) {
 		installButton.style.display = 'block';
 
 		installButton.addEventListener('click', () => {
-			// Show the install prompt
+			// Vis installationsprompten
 			deferredPrompt.prompt();
 
-			// Wait for the user to respond to the prompt
+			// Vent på brugerens svar på prompten
 			deferredPrompt.userChoice.then(choiceResult => {
 				if (choiceResult.outcome === 'accepted') {
-					console.log('User accepted the installation');
+					console.log('Bruger accepterede installationen');
 					installButton.style.display = 'none';
 				}
 				deferredPrompt = null;
@@ -408,43 +406,43 @@ window.addEventListener('beforeinstallprompt', e => {
 	}
 });
 
-// Hide button when app is installed
+// Skjul knap når appen er installeret
 window.addEventListener('appinstalled', () => {
-	console.log('Application installed');
+	console.log('Applikation installeret');
 	const installButton = document.getElementById('install-button');
 	if (installButton) {
 		installButton.style.display = 'none';
 	}
 });
 
-// Handle files opened with the app
+// Håndter filer der åbnes med appen
 if ('launchQueue' in window && 'files' in LaunchParams.prototype) {
 	window.launchQueue.setConsumer(async launchParams => {
 		if (!launchParams.files.length) {
 			return;
 		}
 
-		// Handle each file
+		// Håndter hver fil
 		for (const fileHandle of launchParams.files) {
 			try {
 				const file = await fileHandle.getFile();
 				const content = await file.text();
 
-				// Create a new snippet from the file
+				// Opret et nyt snippet fra filen
 				createSnippetFromFile({
 					name: file.name,
 					language: detectLanguage(file.name),
 					code: content,
 				});
 			} catch (error) {
-				console.error('Error handling file:', error);
-				showError('Failed to open file. ' + error.message);
+				console.error('Fejl ved håndtering af fil:', error);
+				showError('Kunne ikke åbne filen. ' + error.message);
 			}
 		}
 	});
 }
 
-// Detect language based on file extension
+// Detekter sprog baseret på filendelse
 function detectLanguage(filename) {
 	const extension = filename.split('.').pop().toLowerCase();
 
@@ -470,49 +468,49 @@ function detectLanguage(filename) {
 	return extensionMap[extension] || 'plaintext';
 }
 
-// Create snippet from file content
+// Opret snippet fra filindhold
 function createSnippetFromFile({ name, language, code }) {
-	// Set editor values
+	// Indstil editor værdier
 	const codeEditor = document.getElementById('codeEditor');
 	const languageSelect = document.getElementById('languageSelect');
 
 	if (codeEditor && languageSelect) {
-		// Set values
+		// Indstil værdier
 		codeEditor.value = code;
 
-		// Try to set the language if supported
+		// Prøv at indstille sproget hvis det understøttes
 		if (Array.from(languageSelect.options).some(opt => opt.value === language)) {
 			languageSelect.value = language;
 		}
 
-		// Update UI
+		// Opdater brugergrænsefladen
 		if (typeof updatePreview === 'function') {
 			updatePreview();
 		}
 
-		// Show success message
-		showMessage(`Opened file: ${name}`);
+		// Vis succesbesked
+		showMessage(`Åbnede fil: ${name}`);
 	}
 }
 
-// Handle protocol invocation
+// Håndter protokol-invokation
 document.addEventListener('DOMContentLoaded', () => {
-	// Check if we were launched via protocol
+	// Tjek om vi blev startet via protokol
 	const urlParams = new URLSearchParams(window.location.search);
 	const snippetId = urlParams.get('snippet');
 
 	if (snippetId) {
-		// Try to load the snippet by ID
+		// Prøv at indlæse snippet efter ID
 		loadSnippetById(snippetId);
 	}
 
-	// Handle the "new" parameter
+	// Håndter "new" parameteren
 	if (urlParams.has('new') && urlParams.get('new') === 'true') {
-		// Create a new snippet
+		// Opret et nyt snippet
 		document.getElementById('newSnippetBtn')?.click();
 	}
 
-	// Handle the "filter" parameter
+	// Håndter "filter" parameteren
 	if (urlParams.has('filter')) {
 		const filter = urlParams.get('filter');
 		if (filter === 'recent') {
@@ -521,42 +519,42 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 });
 
-// Register application-specific keyboard shortcuts
+// Registrer applikationsspecifikke tastaturgenveje
 function registerAppShortcuts() {
-	// Make sure keyboard manager is loaded
+	// Sørg for at tastaturmanager er indlæst
 	if (!window.KeyboardManager) {
-		console.error('Keyboard Manager not loaded');
+		console.error('Tastatur Manager ikke indlæst');
 		return;
 	}
 
-	// Load file with Ctrl+O
+	// Indlæs fil med Ctrl+O
 	KeyboardManager.registerShortcut('loadFile', {
 		key: 'o',
 		ctrl: true,
-		description: 'Load file from disk',
+		description: 'Indlæs fil fra disk',
 		handler: () => {
 			if (window.FileSystem && typeof FileSystem.loadFromFile === 'function') {
 				FileSystem.loadFromFile({
 					onSuccess: file => {
-						showMessage(`Loaded ${file.name}`);
+						showMessage(`Indlæst ${file.name}`);
 					},
 					onError: error => {
-						showMessage(`Error loading file: ${error}`, true);
+						showMessage(`Fejl ved indlæsning af fil: ${error}`, true);
 					},
 				});
 			}
 		},
 	});
 
-	// Save file with Ctrl+S
+	// Gem fil med Ctrl+S
 	KeyboardManager.registerShortcut('saveFile', {
 		key: 's',
 		ctrl: true,
 		shift: true,
-		description: 'Save to file',
+		description: 'Gem til fil',
 		handler: () => {
 			if (window.FileSystem && typeof FileSystem.saveToFile === 'function') {
-				// Get current editor content
+				// Hent nuværende editor indhold
 				const editor = document.getElementById('codeEditor');
 				const language = document.getElementById('languageSelect')?.value || 'javascript';
 
@@ -565,10 +563,10 @@ function registerAppShortcuts() {
 						content: editor.value,
 						language: language,
 						onSuccess: filename => {
-							showMessage(`Saved to ${filename}`);
+							showMessage(`Gemt til ${filename}`);
 						},
 						onError: error => {
-							showMessage(`Error saving file: ${error}`, true);
+							showMessage(`Fejl ved gemning af fil: ${error}`, true);
 						},
 					});
 				}
@@ -577,45 +575,45 @@ function registerAppShortcuts() {
 	});
 }
 
-// Call during initialization
+// Kald under initialisering
 document.addEventListener('DOMContentLoaded', () => {
-	// Register app-specific shortcuts
+	// Registrer app-specifikke genveje
 	registerAppShortcuts();
 });
 
-// Function to load snippet by ID
+// Funktion til at indlæse snippet efter ID
 function loadSnippetById(id) {
-	// Get snippets from localStorage
+	// Hent snippets fra localStorage
 	const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
 
-	// Find the snippet
+	// Find snippet
 	const snippet = snippets.find(s => s.id === id);
 
 	if (snippet) {
-		// Load it into the editor
+		// Indlæs det i editoren
 		loadSnippet(id);
 	} else {
-		showError(`Snippet not found: ${id}`);
+		showError(`Snippet ikke fundet: ${id}`);
 	}
 }
 
-// Display recent snippets
+// Vis seneste snippets
 function displayRecentSnippets() {
 	const snippets = JSON.parse(localStorage.getItem('snippets') || '[]');
 
-	// Sort by last modified date, newest first
+	// Sorter efter sidste ændringsdato, nyeste først
 	const recentSnippets = [...snippets]
 		.sort((a, b) => {
 			return new Date(b.lastModified) - new Date(a.lastModified);
 		})
-		.slice(0, 5); // Get top 5
+		.slice(0, 5); // Hent top 5
 
-	// Highlight these in the UI
-	// This depends on your specific UI implementation
+	// Fremhæv disse i brugergrænsefladen
+	// Dette afhænger af din specifikke UI implementering
 	highlightSnippets(recentSnippets.map(s => s.id));
 }
 
-// Highlight snippets in the list
+// Fremhæv snippets i listen
 function highlightSnippets(ids) {
 	document.querySelectorAll('.snippet-item').forEach(item => {
 		if (ids.includes(item.dataset.id)) {
