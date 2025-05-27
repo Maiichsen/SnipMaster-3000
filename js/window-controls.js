@@ -1,322 +1,321 @@
 /**
- * window-controls.js - Handles window control and display mode features
+ * window-controls.js - Håndterer vindue kontrol og visningstilstand funktioner
  */
 
 const WindowManager = {
-  // Current display mode
-  displayMode: 'browser',
-  
-  // Wake lock instance
-  wakeLock: null,
-  
-  // Initialization
-  init() {
-    console.log('Window Manager initialized');
-    
-    // Check initial display mode
-    this.detectDisplayMode();
-    
-    // Check for window controls overlay
-    this.checkWindowControlsOverlay();
-    
-    // Set up event listeners
-    this.setupEventListeners();
-    
-    // Add UI controls if needed
-    this.setupUI();
-  },
-  
-  /**
-   * Set up event listeners
-   */
-  setupEventListeners() {
-    // Listen for display mode changes
-    window.matchMedia('(display-mode: standalone)').addEventListener('change', () => {
-      this.detectDisplayMode();
-    });
-    
-    // Listen for window controls overlay changes
-    if ('windowControlsOverlay' in navigator) {
-      navigator.windowControlsOverlay.addEventListener('geometrychange', 
-        () => this.checkWindowControlsOverlay());
-    }
-    
-    // Listen for online/offline events
-    window.addEventListener('online', () => this.updateConnectionStatus());
-    window.addEventListener('offline', () => this.updateConnectionStatus());
-    
-    // Listen for app installation
-    window.addEventListener('appinstalled', () => {
-      this.showStatusMessage('App installed successfully!');
-      
-      // Check display mode after short delay
-      setTimeout(() => this.detectDisplayMode(), 1000);
-    });
-  },
-  
-  /**
-   * Add UI elements for window controls
-   */
-  setupUI() {
-    // Add display mode indicator
-    this.addDisplayModeIndicator();
-    
-    // Add wake lock button if supported
-    if ('wakeLock' in navigator) {
-      this.addWakeLockButton();
-    }
-  },
-  
-  /**
-   * Add display mode indicator to UI
-   */
-  addDisplayModeIndicator() {
-    // Create or get status bar
-    let statusBar = document.querySelector('.status-bar');
-    if (!statusBar) {
-      statusBar = document.createElement('div');
-      statusBar.className = 'status-bar';
-      document.body.appendChild(statusBar);
-    }
-    
-    // Add display mode indicator
-    const displayModeIndicator = document.createElement('div');
-    displayModeIndicator.id = 'display-mode-indicator';
-    displayModeIndicator.className = 'status-indicator';
-    displayModeIndicator.textContent = `Mode: ${this.displayMode}`;
-    
-    statusBar.appendChild(displayModeIndicator);
-  },
-  
-  /**
-   * Add wake lock button
-   */
-  addWakeLockButton() {
-    // Find toolbar
-    const toolbar = document.querySelector('.toolbar') || document.querySelector('.app-header');
-    if (!toolbar) return;
-    
-    // Create button
-    const wakeLockBtn = document.createElement('button');
-    wakeLockBtn.id = 'wake-lock-btn';
-    wakeLockBtn.className = 'action-button';
-    wakeLockBtn.title = 'Keep screen on';
-    wakeLockBtn.innerHTML = '<span class="icon">👁️</span>';
-    
-    // Add to toolbar
-    toolbar.appendChild(wakeLockBtn);
-    
-    // Add click listener
-    wakeLockBtn.addEventListener('click', () => this.toggleWakeLock());
-  },
-  
-  /**
-   * Detect current display mode
-   */
-  detectDisplayMode() {
-    let newMode = 'browser';
-    
-    // Check various display modes
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      newMode = 'standalone';
-    } else if (window.matchMedia('(display-mode: fullscreen)').matches) {
-      newMode = 'fullscreen';
-    } else if (window.matchMedia('(display-mode: minimal-ui)').matches) {
-      newMode = 'minimal-ui';
-    } else if (window.matchMedia('(display-mode: window-controls-overlay)').matches) {
-      newMode = 'window-controls-overlay';
-    }
-    
-    // Update if changed
-    if (newMode !== this.displayMode) {
-      this.displayMode = newMode;
-      
-      // Update UI
-      this.updateDisplayModeUI();
-      
-      // Log change
-      console.log('Display mode changed:', this.displayMode);
-    }
-    
-    return this.displayMode;
-  },
-  
-  /**
-   * Update UI to reflect current display mode
-   */
-  updateDisplayModeUI() {
-    // Add display mode attribute to body
-    document.body.setAttribute('data-display-mode', this.displayMode);
-    
-    // Update indicator if exists
-    const indicator = document.getElementById('display-mode-indicator');
-    if (indicator) {
-      indicator.textContent = `Mode: ${this.displayMode}`;
-    }
-    
-    // Show message about mode change
-    this.showStatusMessage(`Display mode: ${this.displayMode}`);
-  },
-  
-  /**
-   * Check if window controls overlay is available and visible
-   */
-  checkWindowControlsOverlay() {
-    if ('windowControlsOverlay' in navigator) {
-      const wco = navigator.windowControlsOverlay;
-      
-      // Update body class based on WCO visibility
-      document.body.classList.toggle('wco-visible', wco.visible);
-      
-      if (wco.visible) {
-        console.log('Window Controls Overlay is visible');
-        console.log('Title bar area:', {
-          x: wco.getTitlebarAreaRect().x,
-          y: wco.getTitlebarAreaRect().y,
-          width: wco.getTitlebarAreaRect().width,
-          height: wco.getTitlebarAreaRect().height
-        });
-        
-        // Adjust UI for WCO when visible
-        this.adjustUIForWCO(true);
-      } else {
-        // Reset UI when WCO not visible
-        this.adjustUIForWCO(false);
-      }
-      
-      return wco.visible;
-    }
-    
-    return false;
-  },
-  
-  /**
-   * Adjust UI for Window Controls Overlay
-   * @param {boolean} isVisible - Whether WCO is visible
-   */
-  adjustUIForWCO(isVisible) {
-    // This function should be customized based on your app's UI
-    // Example: adjust header layout
-    const header = document.querySelector('.app-header');
-    if (header) {
-      if (isVisible) {
-        // Get title bar rect
-        const rect = navigator.windowControlsOverlay.getTitlebarAreaRect();
-        
-        // Style header to fit in title bar area
-        header.style.position = 'fixed';
-        header.style.left = `${rect.x}px`;
-        header.style.top = `${rect.y}px`;
-        header.style.width = `${rect.width}px`;
-        header.style.height = `${rect.height}px`;
-      } else {
-        // Reset styles
-        header.style.position = '';
-        header.style.left = '';
-        header.style.top = '';
-        header.style.width = '';
-        header.style.height = '';
-      }
-    }
-  },
-  
-  /**
-   * Toggle screen wake lock
-   */
-  async toggleWakeLock() {
-    // If wake lock not supported, show message and exit
-    if (!('wakeLock' in navigator)) {
-      this.showStatusMessage('Wake Lock not supported in this browser', true);
-      return false;
-    }
-    
-    try {
-      if (this.wakeLock) {
-        // Release the wake lock
-        await this.wakeLock.release();
-        this.wakeLock = null;
-        
-        // Update UI
-        document.getElementById('wake-lock-btn')?.classList.remove('active');
-        this.showStatusMessage('Screen can now time out normally');
-      } else {
-        // Request a wake lock
-        this.wakeLock = await navigator.wakeLock.request('screen');
-        
-        // Update UI
-        document.getElementById('wake-lock-btn')?.classList.add('active');
-        this.showStatusMessage('Screen will stay on while app is open');
-        
-        // Add release listener
-        this.wakeLock.addEventListener('release', () => {
-          // Update UI when wake lock is released
-          document.getElementById('wake-lock-btn')?.classList.remove('active');
-          this.wakeLock = null;
-        });
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Wake lock error:', error);
-      this.showStatusMessage('Failed to toggle wake lock: ' + error.message, true);
-      return false;
-    }
-  },
-  
-  /**
-   * Update connection status indicator
-   */
-  updateConnectionStatus() {
-    // Create status element if it doesn't exist
-    let statusElement = document.getElementById('connection-status');
-    if (!statusElement) {
-      statusElement = document.createElement('div');
-      statusElement.id = 'connection-status';
-      statusElement.className = 'status-indicator';
-      
-      const statusBar = document.querySelector('.status-bar');
-      if (statusBar) {
-        statusBar.appendChild(statusElement);
-      } else {
-        // Create status bar if it doesn't exist
-        const newStatusBar = document.createElement('div');
-        newStatusBar.className = 'status-bar';
-        newStatusBar.appendChild(statusElement);
-        document.body.appendChild(newStatusBar);
-      }
-    }
-    
-    // Update status
-    if (navigator.onLine) {
-      statusElement.innerHTML = '🟢 Online';
-      statusElement.classList.remove('offline');
-      statusElement.classList.add('online');
-    } else {
-      statusElement.innerHTML = '🔴 Offline';
-      statusElement.classList.remove('online');
-      statusElement.classList.add('offline');
-    }
-  },
-  
-  /**
-   * Show status message
-   * @param {string} message - Message to show
-   * @param {boolean} isError - Whether this is an error message
-   */
-  showStatusMessage(message, isError = false) {
-    // Use app's status message function if available
-    if (typeof showMessage === 'function') {
-      showMessage(message, isError);
-    } else {
-      console.log(message);
-    }
-  }
+	// Nuværende visningstilstand
+	displayMode: 'browser',
+
+	// Wake lock instans
+	wakeLock: null,
+
+	// Initialisering
+	init() {
+		console.log('Window Manager initialized');
+
+		// Tjek initial visningstilstand
+		this.detectDisplayMode();
+
+		// Tjek for vindue kontrol overlay
+		this.checkWindowControlsOverlay();
+
+		// Opsæt event lytters
+		this.setupEventListeners();
+
+		// Tilføj UI kontroller hvis nødvendigt
+		this.setupUI();
+	},
+
+	/**
+	 * Opsætter event lytters
+	 */
+	setupEventListeners() {
+		// Lyt efter visningstilstand ændringer
+		window.matchMedia('(display-mode: standalone)').addEventListener('change', () => {
+			this.detectDisplayMode();
+		});
+
+		// Lyt efter vindue kontrol overlay ændringer
+		if ('windowControlsOverlay' in navigator) {
+			navigator.windowControlsOverlay.addEventListener('geometrychange', () => this.checkWindowControlsOverlay());
+		}
+
+		// Lyt efter online/offline events
+		window.addEventListener('online', () => this.updateConnectionStatus());
+		window.addEventListener('offline', () => this.updateConnectionStatus());
+
+		// Lyt efter app installation
+		window.addEventListener('appinstalled', () => {
+			this.showStatusMessage('App installeret succesfuldt!');
+
+			// Tjek visningstilstand efter kort forsinkelse
+			setTimeout(() => this.detectDisplayMode(), 1000);
+		});
+	},
+
+	/**
+	 * Tilføjer UI elementer til vindue kontroller
+	 */
+	setupUI() {
+		// Tilføj visningstilstand indikator
+		this.addDisplayModeIndicator();
+
+		// Tilføj wake lock knap hvis understøttet
+		if ('wakeLock' in navigator) {
+			this.addWakeLockButton();
+		}
+	},
+
+	/**
+	 * Tilføjer visningstilstand indikator til UI
+	 */
+	addDisplayModeIndicator() {
+		// Opret eller hent status bar
+		let statusBar = document.querySelector('.status-bar');
+		if (!statusBar) {
+			statusBar = document.createElement('div');
+			statusBar.className = 'status-bar';
+			document.body.appendChild(statusBar);
+		}
+
+		// Tilføj visningstilstand indikator
+		const displayModeIndicator = document.createElement('div');
+		displayModeIndicator.id = 'display-mode-indicator';
+		displayModeIndicator.className = 'status-indicator';
+		displayModeIndicator.textContent = `Tilstand: ${this.displayMode}`;
+
+		statusBar.appendChild(displayModeIndicator);
+	},
+
+	/**
+	 * Tilføjer wake lock knap
+	 */
+	addWakeLockButton() {
+		// Find værktøjslinje
+		const toolbar = document.querySelector('.toolbar') || document.querySelector('.app-header');
+		if (!toolbar) return;
+
+		// Opret knap
+		const wakeLockBtn = document.createElement('button');
+		wakeLockBtn.id = 'wake-lock-btn';
+		wakeLockBtn.className = 'action-button';
+		wakeLockBtn.title = 'Hold skærm tændt';
+		wakeLockBtn.innerHTML = '<span class="icon">👁️</span>';
+
+		// Tilføj til værktøjslinje
+		toolbar.appendChild(wakeLockBtn);
+
+		// Tilføj klik lytters
+		wakeLockBtn.addEventListener('click', () => this.toggleWakeLock());
+	},
+
+	/**
+	 * Detekterer nuværende visningstilstand
+	 */
+	detectDisplayMode() {
+		let newMode = 'browser';
+
+		// Tjek forskellige visningstilstande
+		if (window.matchMedia('(display-mode: standalone)').matches) {
+			newMode = 'standalone';
+		} else if (window.matchMedia('(display-mode: fullscreen)').matches) {
+			newMode = 'fullscreen';
+		} else if (window.matchMedia('(display-mode: minimal-ui)').matches) {
+			newMode = 'minimal-ui';
+		} else if (window.matchMedia('(display-mode: window-controls-overlay)').matches) {
+			newMode = 'window-controls-overlay';
+		}
+
+		// Opdater hvis ændret
+		if (newMode !== this.displayMode) {
+			this.displayMode = newMode;
+
+			// Opdater UI
+			this.updateDisplayModeUI();
+
+			// Log ændring
+			console.log('Display mode changed:', this.displayMode);
+		}
+
+		return this.displayMode;
+	},
+
+	/**
+	 * Opdaterer UI for at afspejle nuværende visningstilstand
+	 */
+	updateDisplayModeUI() {
+		// Tilføj visningstilstand attribut til body
+		document.body.setAttribute('data-display-mode', this.displayMode);
+
+		// Opdater indikator hvis den findes
+		const indicator = document.getElementById('display-mode-indicator');
+		if (indicator) {
+			indicator.textContent = `Tilstand: ${this.displayMode}`;
+		}
+
+		// Vis besked om tilstandsændring
+		this.showStatusMessage(`Visningstilstand: ${this.displayMode}`);
+	},
+
+	/**
+	 * Tjekker om vindue kontrol overlay er tilgængelig og synlig
+	 */
+	checkWindowControlsOverlay() {
+		if ('windowControlsOverlay' in navigator) {
+			const wco = navigator.windowControlsOverlay;
+
+			// Opdater body klasse baseret på WCO synlighed
+			document.body.classList.toggle('wco-visible', wco.visible);
+
+			if (wco.visible) {
+				console.log('Window Controls Overlay is visible');
+				console.log('Title bar area:', {
+					x: wco.getTitlebarAreaRect().x,
+					y: wco.getTitlebarAreaRect().y,
+					width: wco.getTitlebarAreaRect().width,
+					height: wco.getTitlebarAreaRect().height,
+				});
+
+				// Juster UI for WCO når synlig
+				this.adjustUIForWCO(true);
+			} else {
+				// Nulstil UI når WCO ikke er synlig
+				this.adjustUIForWCO(false);
+			}
+
+			return wco.visible;
+		}
+
+		return false;
+	},
+
+	/**
+	 * Justerer UI for Window Controls Overlay
+	 * @param {boolean} isVisible - Om WCO er synlig
+	 */
+	adjustUIForWCO(isVisible) {
+		// Denne funktion bør tilpasses baseret på din app's UI
+		// Eksempel: juster header layout
+		const header = document.querySelector('.app-header');
+		if (header) {
+			if (isVisible) {
+				// Hent titel bar rektangel
+				const rect = navigator.windowControlsOverlay.getTitlebarAreaRect();
+
+				// Style header til at passe i titel bar område
+				header.style.position = 'fixed';
+				header.style.left = `${rect.x}px`;
+				header.style.top = `${rect.y}px`;
+				header.style.width = `${rect.width}px`;
+				header.style.height = `${rect.height}px`;
+			} else {
+				// Nulstil styles
+				header.style.position = '';
+				header.style.left = '';
+				header.style.top = '';
+				header.style.width = '';
+				header.style.height = '';
+			}
+		}
+	},
+
+	/**
+	 * Skifter skærm wake lock
+	 */
+	async toggleWakeLock() {
+		// Hvis wake lock ikke understøttes, vis besked og afslut
+		if (!('wakeLock' in navigator)) {
+			this.showStatusMessage('Wake Lock ikke understøttet i denne browser', true);
+			return false;
+		}
+
+		try {
+			if (this.wakeLock) {
+				// Frigør wake lock
+				await this.wakeLock.release();
+				this.wakeLock = null;
+
+				// Opdater UI
+				document.getElementById('wake-lock-btn')?.classList.remove('active');
+				this.showStatusMessage('Skærm kan nu time out normalt');
+			} else {
+				// Anmod om wake lock
+				this.wakeLock = await navigator.wakeLock.request('screen');
+
+				// Opdater UI
+				document.getElementById('wake-lock-btn')?.classList.add('active');
+				this.showStatusMessage('Skærm forbliver tændt mens app er åben');
+
+				// Tilføj frigør lytters
+				this.wakeLock.addEventListener('release', () => {
+					// Opdater UI når wake lock frigøres
+					document.getElementById('wake-lock-btn')?.classList.remove('active');
+					this.wakeLock = null;
+				});
+			}
+
+			return true;
+		} catch (error) {
+			console.error('Wake lock error:', error);
+			this.showStatusMessage('Kunne ikke skifte wake lock: ' + error.message, true);
+			return false;
+		}
+	},
+
+	/**
+	 * Opdaterer forbindelses status indikator
+	 */
+	updateConnectionStatus() {
+		// Opret status element hvis det ikke findes
+		let statusElement = document.getElementById('connection-status');
+		if (!statusElement) {
+			statusElement = document.createElement('div');
+			statusElement.id = 'connection-status';
+			statusElement.className = 'status-indicator';
+
+			const statusBar = document.querySelector('.status-bar');
+			if (statusBar) {
+				statusBar.appendChild(statusElement);
+			} else {
+				// Opret status bar hvis den ikke findes
+				const newStatusBar = document.createElement('div');
+				newStatusBar.className = 'status-bar';
+				newStatusBar.appendChild(statusElement);
+				document.body.appendChild(newStatusBar);
+			}
+		}
+
+		// Opdater status
+		if (navigator.onLine) {
+			statusElement.innerHTML = '🟢 Online';
+			statusElement.classList.remove('offline');
+			statusElement.classList.add('online');
+		} else {
+			statusElement.innerHTML = '🔴 Offline';
+			statusElement.classList.remove('online');
+			statusElement.classList.add('offline');
+		}
+	},
+
+	/**
+	 * Viser status besked
+	 * @param {string} message - Besked at vise
+	 * @param {boolean} isError - Om dette er en fejlbesked
+	 */
+	showStatusMessage(message, isError = false) {
+		// Brug app's status besked funktion hvis tilgængelig
+		if (typeof showMessage === 'function') {
+			showMessage(message, isError);
+		} else {
+			console.log(message);
+		}
+	},
 };
 
-// Initialize on load
+// Initialiser ved indlæsning
 document.addEventListener('DOMContentLoaded', () => {
-  WindowManager.init();
+	WindowManager.init();
 });
 
-// Make it available globally
+// Gør det tilgængeligt globalt
 window.WindowManager = WindowManager;
