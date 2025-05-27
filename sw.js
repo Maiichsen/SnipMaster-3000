@@ -128,7 +128,7 @@ async function getSnippetsToSync() {
         };
     });
 }
-
+// ------- 10% chance for at den fejler med at Sync--------
 async function syncSnippet(snippet) {
     // Mock server sync - in a real app, this would be an API call
     return new Promise((resolve, reject) => {

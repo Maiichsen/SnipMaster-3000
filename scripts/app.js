@@ -122,7 +122,7 @@ function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("/scripts/sw.js")
+        .register("/sw.js")
         .then((registration) => {
           console.log(
             "ServiceWorker registration successful with scope:",
