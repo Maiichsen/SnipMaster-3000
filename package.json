@@ -10,10 +10,8 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
-    "live-server": "^1.2.2"
-  },
   "dependencies": {
-    "highlight.js": "^11.11.1"
+    "highlight.js": "^11.11.1",
+    "live-server": "^1.2.2"
   }
 }
