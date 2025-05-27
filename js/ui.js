@@ -8,7 +8,7 @@ function initFileHandlers() {
 		return;
 	}
 
-	// Hent knap
+	// Hent knap, køre funktion når den klikkes
 	const loadFileBtn = document.getElementById('loadFileBtn');
 	if (loadFileBtn) {
 		loadFileBtn.addEventListener('click', handleLoadFile);

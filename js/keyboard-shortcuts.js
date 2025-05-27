@@ -23,7 +23,7 @@ const KeyboardManager = {
 	 * Opsætter tastatur event lytters
 	 */
 	setupListeners() {
-		// Global keydown håndterer
+		// lytter efter keydown event og kalder handleKeyPress funktionen
 		document.addEventListener('keydown', e => this.handleKeyPress(e));
 	},
 
@@ -59,7 +59,7 @@ const KeyboardManager = {
 			showIndicator: true,
 		});
 
-		// Gem snippet
+		// ctrl + s = Gem snippet
 		this.registerShortcut('saveSnippet', {
 			key: 's',
 			ctrl: true,
@@ -72,7 +72,7 @@ const KeyboardManager = {
 			},
 		});
 
-		// Ny snippet
+		// ctrl + n = Opret ny snippet
 		this.registerShortcut('newSnippet', {
 			key: 'n',
 			ctrl: true,
@@ -88,7 +88,7 @@ const KeyboardManager = {
 			},
 		});
 
-		// Skift fuldskærms tilstand
+		// ctrl + shift + f =  toggle fuldskærms
 		this.registerShortcut('toggleFullscreen', {
 			key: 'f',
 			ctrl: true,
@@ -97,7 +97,7 @@ const KeyboardManager = {
 			handler: () => this.toggleFullscreen(),
 		});
 
-		// Luk dialogs med Escape
+		// Escape = Luk dialogs
 		this.registerShortcut('closeDialogs', {
 			key: 'Escape',
 			description: 'Luk dialogs',

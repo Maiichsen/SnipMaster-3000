@@ -1,6 +1,6 @@
 // sw.js - Service Worker for SnipMaster 3000
 
-// Cache navne med versions identifikatorer
+// navnene på cache med versions identifikatorer
 const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `snipmaster-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `snipmaster-dynamic-${CACHE_VERSION}`;
@@ -17,7 +17,7 @@ const APP_SHELL = [
 	'/offline.html',
 ];
 
-// Installer event - cacher app shell
+// event blir kørt når appen installeres
 self.addEventListener('install', event => {
 	console.log('Service Worker: Installing...');
 
@@ -35,7 +35,7 @@ self.addEventListener('install', event => {
 	);
 });
 
-// Aktiver event - rydder op i gamle caches
+// event blir kørt når SERVICE WORKER aktiveres
 self.addEventListener('activate', event => {
 	console.log('Service Worker: Activating...');
 
@@ -46,11 +46,13 @@ self.addEventListener('activate', event => {
 			.keys()
 			.then(cacheNames => {
 				return cacheNames.filter(
+					// finder alle cache navn der starter med snipmaster
 					cacheName => cacheName.startsWith('snipmaster-') && !currentCaches.includes(cacheName)
 				);
 			})
 			.then(cachesToDelete => {
 				return Promise.all(
+					// sletter alle gamle caches
 					cachesToDelete.map(cacheToDelete => {
 						console.log('Service Worker: Deleting old cache', cacheToDelete);
 						return caches.delete(cacheToDelete);
@@ -64,11 +66,11 @@ self.addEventListener('activate', event => {
 	);
 });
 
-// Fetch event - håndterer forskellige typer af requests med forskellige strategier
+// lytter efter Fetch event - bruges til cacing strategier
 self.addEventListener('fetch', event => {
 	const url = new URL(event.request.url);
 
-	// Håndterer forskellige URLs med forskellige strategier
+	// Her finder vi ud af hvilken strategi der skal bruges(forklar)
 
 	// 1. For API requests (hvis din app har dem)
 	if (url.pathname.startsWith('/api/')) {

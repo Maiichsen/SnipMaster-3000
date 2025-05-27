@@ -1,5 +1,5 @@
 /**
- * window-controls.js - Håndterer vindue kontrol og visningstilstand funktioner
+ * window-controls.js - Håndterer window controls og pwa visningen
  */
 
 const WindowManager = {
@@ -88,7 +88,7 @@ const WindowManager = {
 	},
 
 	/**
-	 * Tilføjer wake lock knap
+	 * Tilføjer wakelock(øje) knap
 	 */
 	addWakeLockButton() {
 		// Find værktøjslinje
