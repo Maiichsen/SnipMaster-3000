@@ -1,5 +1,6 @@
+// SnippetUI modul: Håndterer brugergrænseflade for snippets
 const SnippetUI = {
-    // Store DOM elements
+    // Gemmer referencer til DOM-elementer
     elements: {
         codeEditor: document.getElementById('codeEditor'),
         languageSelect: document.getElementById('languageSelect'),
@@ -8,27 +9,27 @@ const SnippetUI = {
         snippetList: document.getElementById('snippetList')
     },
     
-    // Track current snippet
+    // Holder styr på nuværende valgte snippet
     currentSnippetId: null,
     
-    // Initialize UI
+    // Initialiserer UI
     init: async function() {
-        // Set up event listeners
+        // Sætter event listeners
         this.elements.saveBtn.addEventListener('click', this.handlers.saveButtonClick);
         this.elements.newSnippetBtn.addEventListener('click', this.handlers.newButtonClick);
         
-        // Display existing snippets
+        // Viser eksisterende snippets
         await this.renderSnippets();
     },
     
-    // Render all snippets with sync status
+    // Viser alle snippets med synkroniseringsstatus
     renderSnippets: async function() {
         try {
             const snippets = await SnippetStorage.getAll();
             const snippetList = this.elements.snippetList;
             
             snippetList.innerHTML = snippets.map(snippet => {
-                // Determine status icon and class
+                // Bestemmer statusikon og klasse
                 let statusIcon = '';
                 let statusClass = '';
                 
@@ -43,6 +44,14 @@ const SnippetUI = {
                     statusClass = 'synced';
                 }
                 
+                let statusTitle = '';
+                if (statusClass === 'pending') {
+                    statusTitle = 'Afventer synkronisering';
+                } else if (statusClass === 'error') {
+                    statusTitle = 'Synkronisering fejlede';
+                } else {
+                    statusTitle = 'Synkroniseret';
+                }
                 return `
                     <div class="snippet-item ${snippet.id === this.currentSnippetId ? 'selected' : ''}" 
                          data-id="${snippet.id}">
@@ -51,40 +60,39 @@ const SnippetUI = {
                                 <strong>${snippet.language}</strong>
                                 <span class="category-tag">${snippet.category || 'General'}</span>
                                 <span class="snippet-sync-status ${statusClass}" 
-                                      title="${statusClass === 'pending' ? 'Waiting to sync' : 
-                                              statusClass === 'error' ? 'Sync failed' : 'Synced'}">
+                                      title="${statusTitle}">
                                     ${statusIcon}
                                 </span>
                             </div>
                             <div class="snippet-dates">
-                                <small>Created: ${new Date(snippet.created).toLocaleDateString()}</small>
-                                <small>Modified: ${new Date(snippet.lastModified).toLocaleDateString()}</small>
+                                <small>Oprettet: ${new Date(snippet.created).toLocaleDateString()}</small>
+                                <small>Ændret: ${new Date(snippet.lastModified).toLocaleDateString()}</small>
                                 ${snippet.syncStatus === 'pending' ? 
-                                    '<small class="sync-message">Will sync when online</small>' : ''}
+                                    '<small class="sync-message">Synkroniseres når du er online</small>' : ''}
                             </div>
                         </div>
                         <pre><code>${snippet.code.substring(0, 50)}${snippet.code.length > 50 ? '...' : ''}</code></pre>
                         <div class="snippet-actions">
-                            <button class="delete-btn" data-id="${snippet.id}">Delete</button>
+                            <button class="delete-btn" data-id="${snippet.id}">Slet</button>
                             ${snippet.syncStatus === 'pending' && navigator.onLine ? 
-                                '<button class="sync-item-btn" data-id="' + snippet.id + '">Sync Now</button>' : ''}
+                                '<button class="sync-item-btn" data-id="' + snippet.id + '">Synk nu</button>' : ''}
                         </div>
                     </div>
                 `;
             }).join('');
             
-            // Add event listeners
+            // Tilføjer event listeners
             this.addSnippetEventListeners();
             
         } catch (error) {
-            console.error('Error displaying snippets:', error);
-            this.showMessage('Failed to load snippets', true);
+            console.error('Fejl ved visning af snippets:', error);
+            this.showMessage('Kunne ikke indlæse snippets', true);
         }
     },
     
-    // Add event listeners to snippet items
+    // Tilføjer event listeners til snippet-elementer
     addSnippetEventListeners: function() {
-        // Snippet item click
+        // Klik på snippet-element
         this.elements.snippetList.querySelectorAll('.snippet-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 if (!e.target.matches('.delete-btn') && !e.target.matches('.sync-item-btn')) {
@@ -94,7 +102,7 @@ const SnippetUI = {
             });
         });
         
-        // Delete button click
+        // Klik på slet-knap
         this.elements.snippetList.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -103,7 +111,7 @@ const SnippetUI = {
             });
         });
         
-        // Sync item button click
+        // Klik på synkroniseringsknap for enkelt snippet
         this.elements.snippetList.querySelectorAll('.sync-item-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -113,7 +121,7 @@ const SnippetUI = {
         });
     },
     
-    // Show status message
+    // Viser statusbesked i UI
     showMessage: function(text, isError = false) {
         const message = document.createElement('div');
         message.className = `status-message ${isError ? 'error' : ''}`;
@@ -125,7 +133,7 @@ const SnippetUI = {
         }, 2000);
     },
     
-    // Highlight selected snippet
+    // Fremhæver valgt snippet
     highlightSelectedSnippet: function(id) {
         document.querySelectorAll('.snippet-item').forEach(item => {
             item.classList.toggle('selected', item.dataset.id === id);
@@ -142,7 +150,7 @@ const SnippetUI = {
                 };
                 
                 if (SnippetUI.currentSnippetId) {
-                    // Update existing snippet
+                    // Opdaterer eksisterende snippet
                     const existingSnippet = await SnippetStorage.getById(SnippetUI.currentSnippetId);
                     if (existingSnippet) {
                         snippet.id = SnippetUI.currentSnippetId;
@@ -152,18 +160,18 @@ const SnippetUI = {
                 
                 await SnippetStorage.save(snippet);
                 
-                // If this was a new snippet, update currentSnippetId
+                // Hvis det var en ny snippet, opdater currentSnippetId
                 if (!SnippetUI.currentSnippetId) {
                     SnippetUI.currentSnippetId = snippet.id;
                 }
                 
-                // Update UI
+                // Opdaterer UI
                 await SnippetUI.renderSnippets();
-                SnippetUI.showMessage('Snippet saved!');
+                SnippetUI.showMessage('Snippet gemt!');
                 
             } catch (error) {
-                console.error('Error saving snippet:', error);
-                SnippetUI.showMessage('Failed to save snippet', true);
+                console.error('Fejl ved gemning af snippet:', error);
+                SnippetUI.showMessage('Kunne ikke gemme snippet', true);
             }
         },
         
@@ -171,7 +179,7 @@ const SnippetUI = {
             SnippetUI.currentSnippetId = null;
             SnippetUI.elements.codeEditor.value = '';
             SnippetUI.elements.languageSelect.value = 'javascript';
-            SnippetUI.elements.saveBtn.textContent = 'Save Snippet';
+            SnippetUI.elements.saveBtn.textContent = 'Gem snippet';
             SnippetUI.highlightSelectedSnippet(null);
         },
         
@@ -184,62 +192,62 @@ const SnippetUI = {
                     SnippetUI.elements.codeEditor.value = snippet.code;
                     SnippetUI.elements.languageSelect.value = snippet.language;
                     
-                    // Update UI
-                    SnippetUI.elements.saveBtn.textContent = 'Update Snippet';
+                    // Opdaterer UI
+                    SnippetUI.elements.saveBtn.textContent = 'Opdater snippet';
                     SnippetUI.highlightSelectedSnippet(id);
                     
-                    // If you have a preview feature
+                    // Hvis der er preview-funktion
                     if (typeof updatePreview === 'function') {
                         updatePreview();
                     }
                 }
                 
             } catch (error) {
-                console.error('Error loading snippet:', error);
-                SnippetUI.showMessage('Failed to load snippet', true);
+                console.error('Fejl ved indlæsning af snippet:', error);
+                SnippetUI.showMessage('Kunne ikke indlæse snippet', true);
             }
         },
         
         deleteButtonClick: async function(id) {
-            if (confirm('Are you sure you want to delete this snippet?')) {
+            if (confirm('Er du sikker på, at du vil slette denne snippet?')) {
                 try {
                     await SnippetStorage.delete(id);
                     
-                    // Update UI
+                    // Opdaterer UI
                     if (SnippetUI.currentSnippetId === id) {
                         SnippetUI.currentSnippetId = null;
                         SnippetUI.elements.codeEditor.value = '';
-                        SnippetUI.elements.saveBtn.textContent = 'Save Snippet';
+                        SnippetUI.elements.saveBtn.textContent = 'Gem snippet';
                     }
                     
                     await SnippetUI.renderSnippets();
-                    SnippetUI.showMessage('Snippet deleted!');
+                    SnippetUI.showMessage('Snippet slettet!');
                     
                 } catch (error) {
-                    console.error('Error deleting snippet:', error);
-                    SnippetUI.showMessage('Failed to delete snippet', true);
+                    console.error('Fejl ved sletning af snippet:', error);
+                    SnippetUI.showMessage('Kunne ikke slette snippet', true);
                 }
             }
         },
         
         syncItemButtonClick: async function(id) {
             try {
-                SyncUI.updateAppState(SyncUI.APP_STATES.SYNCING, 'Syncing single snippet...');
+                SyncUI.updateAppState(SyncUI.APP_STATES.SYNCING, 'Synkroniserer enkelt snippet...');
                 
                 const result = await SnippetStorage.syncSingleSnippet(id);
                 
                 if (result.success) {
-                    SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_SUCCESS, 'Snippet synced successfully');
+                    SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_SUCCESS, 'Snippet synkroniseret');
                 } else {
-                    SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_ERROR, 'Failed to sync snippet');
+                    SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_ERROR, 'Kunne ikke synkronisere snippet');
                 }
                 
-                // Refresh the list
+                // Opdaterer listen
                 await SnippetUI.renderSnippets();
                 
             } catch (error) {
-                console.error('Error syncing snippet:', error);
-                SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_ERROR, 'Error syncing snippet');
+                console.error('Fejl ved synkronisering af snippet:', error);
+                SyncUI.updateAppState(SyncUI.APP_STATES.SYNC_ERROR, 'Fejl ved synkronisering af snippet');
             }
         }
     }

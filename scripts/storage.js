@@ -1,56 +1,56 @@
 const SnippetStorage = {
-    // Database configuration
+    // Konfiguration for IndexedDB database
     dbConfig: {
         name: 'SnipMasterDB',
         version: 1,
         storeName: 'snippets'
     },
     
-    // Sync configuration
+    // Konfiguration for synkronisering (fx endpoint og status)
     syncConfig: {
         lastSyncTime: localStorage.getItem('lastSyncTime') || null,
         isSyncing: false,
-        syncEndpoint: '/api/sync' // Mock endpoint. No endpoint yet
+        syncEndpoint: '/api/sync' // Mock endpoint. Ingen rigtig endpoint endnu
     },
     
-    // Open database connection
+    // Åbner forbindelse til IndexedDB og opretter nødvendige object stores og indexes
     openDB: function() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbConfig.name, this.dbConfig.version);
             
-            // Handle database upgrade/creation
+            // Håndterer database-opgradering/oprettelse
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 
-                // Create snippets object store if it doesn't exist
+                // Opretter snippets object store hvis den ikke findes
                 if (!db.objectStoreNames.contains(this.dbConfig.storeName)) {
                     const store = db.createObjectStore(this.dbConfig.storeName, { keyPath: 'id' });
                     
-                    // Create useful indexes
+                    // Opretter nyttige indexes
                     store.createIndex('by-language', 'language', { unique: false });
                     store.createIndex('by-modified', 'lastModified', { unique: false });
                     store.createIndex('by-sync-status', 'syncStatus', { unique: false });
                     
-                    console.log('Database schema created');
+                    console.log('Database-skema oprettet');
                 }
             };
             
             // Success handler
             request.onsuccess = (event) => {
                 const db = event.target.result;
-                console.log('Database opened successfully');
+                console.log('Database åbnet');
                 resolve(db);
             };
             
-            // Error handler
+            // Fejl handler
             request.onerror = (event) => {
-                console.error('Database error:', event.target.error);
-                reject('Error opening database');
+                console.error('Databasefejl:', event.target.error);
+                reject('Fejl ved åbning af database');
             };
         });
     },
     
-    // Get all snippets
+    // Henter alle snippets fra databasen
     getAll: async function() {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
@@ -63,7 +63,7 @@ const SnippetStorage = {
         });
     },
     
-    // Get a single snippet by ID
+    // Henter én snippet ud fra ID
     getById: async function(id) {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
@@ -76,9 +76,9 @@ const SnippetStorage = {
         });
     },
     
-    // Save a snippet (create or update)
+    // Gemmer (opretter/opdaterer) en snippet i databasen
     save: async function(snippet, setPending = true) {
-        // Ensure snippet has required fields
+        // Sikrer at snippet har nødvendige felter
         if (!snippet.id) {
             snippet.id = Date.now().toString();
         }
@@ -89,7 +89,7 @@ const SnippetStorage = {
         
         snippet.lastModified = new Date().toISOString();
         
-        // Only set as pending if not already synced and setPending is true
+        // Sæt kun som pending hvis ikke allerede synkroniseret og setPending er true
         if (setPending && snippet.syncStatus !== 'synced') {
             snippet.syncStatus = 'pending';
         }
@@ -105,7 +105,7 @@ const SnippetStorage = {
         });
     },
     
-    // Delete a snippet
+    // Sletter en snippet fra databasen
     delete: async function(id) {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
@@ -118,7 +118,7 @@ const SnippetStorage = {
         });
     },
     
-    // Get snippets by language
+    // Henter alle snippets for et bestemt sprog
     getByLanguage: async function(language) {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
@@ -132,7 +132,7 @@ const SnippetStorage = {
         });
     },
     
-    // Get all pending snippets
+    // Henter alle snippets, der venter på at blive synkroniseret
     getPendingSync: async function() {
         const db = await this.openDB();
         return new Promise((resolve, reject) => {
@@ -146,109 +146,109 @@ const SnippetStorage = {
         });
     },
 
-    // Mark snippet as synced
+    // Markerer en snippet som synkroniseret
     markAsSynced: async function(id) {
         const snippet = await this.getById(id);
         if (snippet) {
             snippet.syncStatus = 'synced';
-            return this.save(snippet, false); // Pass false to avoid setting pending status again
+            return this.save(snippet, false); // Undgår at sætte pending igen
         }
     },
     
-    // Migrate data from localStorage
+    // Migrerer data fra localStorage til IndexedDB (engangsmigration)
     migrateFromLocalStorage: async function() {
-        // Check if migration has been done
+        // Tjek om migration allerede er udført
         if (localStorage.getItem('dbMigrationDone')) {
-            console.log('Migration already completed');
+            console.log('Migration allerede udført');
             return;
         }
         
         try {
-            // Get snippets from localStorage
+            // Hent snippets fra localStorage
             const localSnippets = JSON.parse(localStorage.getItem('snippets') || '[]');
             
             if (localSnippets.length > 0) {
-                console.log(`Migrating ${localSnippets.length} snippets to IndexedDB...`);
+                console.log(`Migrerer ${localSnippets.length} snippets til IndexedDB...`);
                 
-                // Save each snippet to IndexedDB
+                // Gem hver snippet i IndexedDB
                 for (const snippet of localSnippets) {
                     await this.save(snippet);
                 }
                 
-                console.log('Migration completed successfully');
+                console.log('Migration gennemført');
             } else {
-                console.log('No snippets to migrate');
+                console.log('Ingen snippets at migrere');
             }
             
-            // Mark migration as done
+            // Marker migration som udført
             localStorage.setItem('dbMigrationDone', 'true');
             
         } catch (error) {
-            console.error('Error during migration:', error);
+            console.error('Fejl under migration:', error);
         }
     },
     
-    // Set up mock server sync (in a real app, this would be an API call)
+    // Mock-server synkronisering (simulerer API-kald)
     syncWithServer: async function(snippet) {
-        // Simulate API call
+        // Simulerer API-kald
         return new Promise((resolve, reject) => {
-            // Simulate network delay
+            // Simulerer netværksforsinkelse
             setTimeout(() => {
-                // Simulate 90% success rate
+                // Simulerer 90% succesrate
                 if (Math.random() < 0.9) {
                     resolve({ success: true, data: snippet });
                 } else {
-                    reject(new Error('Server error'));
+                    reject(new Error('Serverfejl'));
                 }
-            }, 500); // 500ms delay
+            }, 500); // 500ms forsinkelse
         });
     },
 
-    // Sync a single snippet
+    // Synkroniserer én snippet med serveren
     syncSingleSnippet: async function(id) {
         try {
-            // Get the snippet
+            // Hent snippet
             const snippet = await this.getById(id);
             if (!snippet || snippet.syncStatus !== 'pending') {
-                return { success: false, message: 'Nothing to sync' };
+                return { success: false, message: 'Intet at synkronisere' };
             }
             
-            // Send to server
+            // Send til server
             await this.syncWithServer(snippet);
             
-            // Mark as synced
+            // Marker som synkroniseret
             await this.markAsSynced(snippet.id);
             
             return { success: true };
         } catch (error) {
-            console.error(`Failed to sync snippet ${id}:`, error);
+            console.error(`Kunne ikke synkronisere snippet ${id}:`, error);
             return { success: false, error };
         }
     },
 
-    // Sync all pending snippets
+    // Synkroniserer alle ventende snippets med serveren
     syncAll: async function() {
-        // Prevent multiple simultaneous syncs
+        // Forhindrer flere samtidige synkroniseringer
         if (this.syncConfig.isSyncing) {
-            return { success: false, message: 'Sync already in progress' };
+            return { success: false, message: 'Synkronisering allerede i gang' };
         }
         
         this.syncConfig.isSyncing = true;
-        // Notify sync started
+        // Notificerer at synkronisering er startet
         document.dispatchEvent(new CustomEvent('sync-status-change', { 
-            detail: { status: 'syncing', message: 'Starting sync...' }
+            detail: { status: 'syncing', message: 'Starter synkronisering...' }
         }));
         
         try {
             const pendingSnippets = await this.getPendingSync();
             
             if (pendingSnippets.length === 0) {
-                // Notify nothing to sync
+                // Notificerer at der ikke er noget at synkronisere
                 document.dispatchEvent(new CustomEvent('sync-status-change', { 
-                    detail: { status: 'sync-success', message: 'Nothing to sync' }
+                    detail: { status: 'sync-success', message: 'Intet at synkronisere' }
                 }));
                 this.syncConfig.isSyncing = false;
-                return { success: true, message: 'Nothing to sync' };
+                return { success: true, message: 'Intet at synkronisere' };
             }
             
             let successCount = 0;
@@ -256,46 +256,46 @@ const SnippetStorage = {
             
             for (const snippet of pendingSnippets) {
                 try {
-                    // Send to server
+                    // Send til server
                     await this.syncWithServer(snippet);
                     
-                    // Mark as synced
+                    // Marker som synkroniseret
                     await this.markAsSynced(snippet.id);
                     
                     successCount++;
                     
-                    // Update UI with progress
+                    // Opdater UI med fremdrift
                     document.dispatchEvent(new CustomEvent('sync-status-change', { 
                         detail: { 
                             status: 'syncing', 
-                            message: `Syncing ${successCount + errorCount}/${pendingSnippets.length}`
+                            message: `Synkroniserer ${successCount + errorCount}/${pendingSnippets.length}`
                         }
                     }));
                     
                 } catch (error) {
-                    console.error(`Failed to sync snippet ${snippet.id}:`, error);
+                    console.error(`Kunne ikke synkronisere snippet ${snippet.id}:`, error);
                     errorCount++;
                 }
             }
             
-            // Update last sync time
+            // Opdaterer tidspunkt for sidste synkronisering
             if (successCount > 0) {
                 this.updateLastSyncTime();
             }
             
-            // Notify sync completed
+            // Notificerer at synkronisering er færdig
             if (errorCount === 0) {
                 document.dispatchEvent(new CustomEvent('sync-status-change', { 
                     detail: { 
                         status: 'sync-success', 
-                        message: `All ${successCount} snippets synced successfully`
+                        message: `Alle ${successCount} snippets synkroniseret` 
                     }
                 }));
             } else {
                 document.dispatchEvent(new CustomEvent('sync-status-change', { 
                     detail: { 
                         status: 'sync-error', 
-                        message: `Synced ${successCount}/${pendingSnippets.length} snippets. ${errorCount} failed.`
+                        message: `Synkroniserede ${successCount}/${pendingSnippets.length} snippets. ${errorCount} fejlede.`
                     }
                 }));
             }
@@ -308,9 +308,9 @@ const SnippetStorage = {
             };
             
         } catch (error) {
-            console.error('Sync failed:', error);
+            console.error('Synkronisering fejlede:', error);
             document.dispatchEvent(new CustomEvent('sync-status-change', { 
-                detail: { status: 'sync-error', message: 'Sync failed completely' }
+                detail: { status: 'sync-error', message: 'Synkronisering fejlede helt' }
             }));
             return { success: false, error };
         } finally {
@@ -318,39 +318,39 @@ const SnippetStorage = {
         }
     },
     
-    // Update last sync time
+    // Opdaterer tidspunkt for sidste synkronisering
     updateLastSyncTime: function() {
         this.syncConfig.lastSyncTime = new Date().toISOString();
         localStorage.setItem('lastSyncTime', this.syncConfig.lastSyncTime);
         
-        // Notify any open tabs about the sync (for multi-tab support)
+        // Notificerer andre åbne faner om sync (multi-tab support)
         try {
             localStorage.setItem('syncEvent', Date.now().toString());
         } catch (e) {
-            console.error('Failed to notify other tabs about sync:', e);
+            console.error('Kunne ikke notificere andre faner om sync:', e);
         }
         
-        // Dispatch event for last sync time update
+        // Udsender event for opdatering af sidste sync-tid
         document.dispatchEvent(new CustomEvent('last-sync-updated', { 
             detail: { time: this.syncConfig.lastSyncTime }
         }));
     },
     
-    // Get last sync time
+    // Henter tidspunkt for sidste synkronisering
     getLastSyncTime: function() {
         return this.syncConfig.lastSyncTime;
     },
     
-    // Register for background sync
+    // Registrerer background sync
     registerBackgroundSync: async function() {
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
             try {
                 const registration = await navigator.serviceWorker.ready;
                 await registration.sync.register('sync-snippets');
-                console.log('Background sync registered');
+                console.log('Background sync registreret');
                 return true;
             } catch (error) {
-                console.error('Background sync registration failed:', error);
+                console.error('Registrering af background sync fejlede:', error);
                 return false;
             }
         }

@@ -7,6 +7,7 @@ const SNIPPETS_CACHE = `snipmaster-snippets-${CACHE_VERSION}`;
 // Log events for easier debugging
 console.log('Service Worker: Loaded');
 
+//statiske filer
 const INITIAL_CACHED_RESOURCES = [
     '/',
     '/index.html',
@@ -22,7 +23,7 @@ const INITIAL_CACHED_RESOURCES = [
     '/images/icon-144.png',
     '/manifest.json'
 ];
-
+// installere 
 self.addEventListener('install', event => {
     console.log('Service Worker: Installing...');
     event.waitUntil(
@@ -38,7 +39,7 @@ self.addEventListener('install', event => {
     );
 });
 
-
+// aktivere 
 self.addEventListener('activate', event => {
     console.log('Service Worker: Activating...');
     const currentCaches = [STATIC_CACHE, DYNAMIC_CACHE, SNIPPETS_CACHE];
@@ -172,7 +173,7 @@ async function markSnippetSynced(id) {
         };
     });
 }
-
+//Fetch 
 // Fetch event listener with different strategies
 self.addEventListener('fetch', event => {
     // Skip cache if the request explicitly asks for fresh content
@@ -223,6 +224,7 @@ self.addEventListener('fetch', event => {
 
 // Cache-first strategy for static assets
 function cacheFirst(event) {
+    console.log("cacheFirst", event)
     return caches.match(event.request)
         .then(cachedResponse => {
             // Return cached response if found
@@ -250,6 +252,7 @@ function cacheFirst(event) {
 
 // Network-first strategy for dynamic content
 function networkFirst(event) {
+    console.log("Network fist", event)
     return fetch(event.request)
         .then(networkResponse => {
             // Check if we received a valid response
@@ -284,6 +287,7 @@ function networkFirst(event) {
 
 // Stale-while-revalidate for user snippets
 function staleWhileRevalidate(event) {
+    console.log("staleWhileRevalidate   ", event)
     return caches.open(SNIPPETS_CACHE)
         .then(cache => {
             return cache.match(event.request)

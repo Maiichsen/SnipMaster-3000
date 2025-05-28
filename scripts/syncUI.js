@@ -1,5 +1,6 @@
+// SyncUI modul: Håndterer synkroniseringsstatus og feedback i UI
 const SyncUI = {
-  // App states
+  // Apptilstande
   APP_STATES: {
     ONLINE: "online",
     OFFLINE: "offline",
@@ -8,7 +9,7 @@ const SyncUI = {
     SYNC_SUCCESS: "sync-success",
   },
 
-  // Elements
+  // Elementer i UI
   elements: {
     statusContainer: null,
     syncButton: null,
@@ -16,27 +17,27 @@ const SyncUI = {
     offlineBanner: null,
   },
 
-  // Current app state
+  // Aktuel apptilstand
   currentState: null,
 
-  // Initialize sync UI
+  // Initialiserer sync UI
   init: function () {
-    // Set up UI elements
+    // Sætter UI-elementer op
     this.createStatusContainer();
     this.createSyncButton();
     this.createLastSyncTimeDisplay();
     this.createOfflineBanner();
 
-    // Set up event listeners
+    // Sætter event listeners
     this.setupEventListeners();
 
-    // Set initial state
+    // Sætter initial tilstand
     this.updateAppState(
       navigator.onLine ? this.APP_STATES.ONLINE : this.APP_STATES.OFFLINE
     );
   },
 
-  // Create status container
+  // Opretter status-container til statusmeddelelser
   createStatusContainer: function () {
     let container = document.getElementById("app-status-container");
     if (!container) {
@@ -47,7 +48,7 @@ const SyncUI = {
     this.elements.statusContainer = container;
   },
 
-  // Create sync button
+  // Opretter synkroniseringsknap
   createSyncButton: function () {
     const header = document.querySelector(".toolbar");
     if (!header) return;
@@ -55,19 +56,19 @@ const SyncUI = {
     const syncButton = document.createElement("button");
     syncButton.id = "sync-button";
     syncButton.className = "sync-button online-only";
-    syncButton.innerHTML = "🔄 Sync Now";
+    syncButton.innerHTML = "🔄 Synkroniser nu";
 
     header.appendChild(syncButton);
     this.elements.syncButton = syncButton;
   },
 
-  // Create last sync time display
+  // Opretter visning for sidste synkroniseringstidspunkt
   createLastSyncTimeDisplay: function () {
     const syncTimeElement = document.createElement("div");
     syncTimeElement.id = "last-sync-time";
     syncTimeElement.className = "last-sync-time";
 
-    // Add it near your sync button
+    // Tilføjer ved siden af sync-knappen
     const header = document.querySelector(".toolbar");
     if (header) {
       header.appendChild(syncTimeElement);
@@ -75,11 +76,11 @@ const SyncUI = {
 
     this.elements.lastSyncTime = syncTimeElement;
 
-    // Initial update
+    // Første opdatering
     this.updateLastSyncTimeDisplay();
   },
 
-  // Create offline banner
+  // Opretter offline-banner
   createOfflineBanner: function () {
     const banner = document.createElement("div");
     banner.id = "offline-banner";
@@ -88,8 +89,8 @@ const SyncUI = {
           <div class="offline-content">
               <div class="offline-icon">📴</div>
               <div class="offline-message">
-                  <h3>You're working offline</h3>
-                  <p>Changes will be saved and synced when you reconnect.</p>
+                  <h3>Du arbejder offline</h3>
+                  <p>Ændringer gemmes og synkroniseres, når du er online igen.</p>
               </div>
           </div>
       `;
@@ -98,9 +99,9 @@ const SyncUI = {
     this.elements.offlineBanner = banner;
   },
 
-  // Set up event listeners
+  // Sætter event listeners for netværk, sync og UI
   setupEventListeners: function () {
-    // Network status events
+    // Netværksstatus events
     window.addEventListener(
       "online",
       this.handlers.onlineStatusChange.bind(this)
@@ -110,7 +111,7 @@ const SyncUI = {
       this.handlers.offlineStatusChange.bind(this)
     );
 
-    // Sync button click
+    // Synkroniseringsknap klik
     if (this.elements.syncButton) {
       this.elements.syncButton.addEventListener(
         "click",
@@ -118,36 +119,36 @@ const SyncUI = {
       );
     }
 
-    // Sync status change event
+    // Sync-status ændring
     document.addEventListener(
       "sync-status-change",
       this.handlers.syncStatusChange.bind(this)
     );
 
-    // Last sync time update
+    // Opdatering af sidste sync-tid
     document.addEventListener(
       "last-sync-updated",
       this.handlers.lastSyncUpdated.bind(this)
     );
   },
 
-  // Update app state
+  // Opdaterer apptilstand og viser status i UI
   updateAppState: function (newState, message = "") {
     console.log({ newState, message }, new Error());
     const statusContainer = this.elements.statusContainer;
     if (!statusContainer) return;
 
-    // Update current state
+    // Opdaterer aktuel tilstand
     this.currentState = newState;
 
-    // Clear previous status
+    // Fjerner tidligere status
     statusContainer.innerHTML = "";
 
-    // Create new status element
+    // Opretter nyt statuselement
     const statusElement = document.createElement("div");
     statusElement.className = `app-status ${newState}`;
 
-    // Set icon and message based on state
+    // Sætter ikon og besked afhængigt af tilstand
     let icon = "",
       defaultMessage = "";
 
@@ -162,32 +163,32 @@ const SyncUI = {
         break;
       case this.APP_STATES.SYNCING:
         icon = "🔄";
-        defaultMessage = message || "Syncing...";
+        defaultMessage = message || "Synkroniserer...";
         break;
       case this.APP_STATES.SYNC_ERROR:
         icon = "⚠️";
-        defaultMessage = message || "Sync error";
+        defaultMessage = message || "Synkroniseringsfejl";
         break;
       case this.APP_STATES.SYNC_SUCCESS:
         icon = "✅";
-        defaultMessage = message || "Synced";
+        defaultMessage = message || "Synkroniseret";
         break;
     }
 
-    // Only show detailed message for syncing, error, and success states
+    // Viser kun detaljeret besked for syncing, error og success
     const showDetailedMessage = [
       this.APP_STATES.SYNCING,
       this.APP_STATES.SYNC_ERROR,
       this.APP_STATES.SYNC_SUCCESS,
     ].includes(newState);
 
-    // Add icon
+    // Tilføjer ikon
     const iconSpan = document.createElement("span");
     iconSpan.className = "status-icon";
     iconSpan.textContent = icon;
     statusElement.appendChild(iconSpan);
 
-    // Only add message span if we need to show a message
+    // Tilføjer besked hvis nødvendigt
     if (showDetailedMessage) {
       const messageSpan = document.createElement("span");
       messageSpan.className = "status-message";
@@ -195,21 +196,21 @@ const SyncUI = {
       statusElement.appendChild(messageSpan);
     }
 
-    // Add to container
+    // Tilføjer til container
     statusContainer.appendChild(statusElement);
 
-    // If sync success, auto-revert to online after 3 seconds
+    // Hvis synkronisering lykkes, vis online efter 3 sekunder
     if (newState === this.APP_STATES.SYNC_SUCCESS) {
       setTimeout(() => {
         this.updateAppState(this.APP_STATES.ONLINE);
       }, 3000);
     }
 
-    // Update body class for CSS targeting
+    // Opdaterer body class for CSS
     document.body.className = `app-state-${newState}`;
   },
 
-  // Update last sync time display
+  // Opdaterer visning af sidste synkroniseringstidspunkt
   updateLastSyncTimeDisplay: function () {
     const timeElement = this.elements.lastSyncTime;
     if (!timeElement) return;
@@ -223,12 +224,12 @@ const SyncUI = {
 
       let timeText = "";
       if (diffMinutes < 1) {
-        timeText = "just now";
+        timeText = "lige nu";
       } else if (diffMinutes < 60) {
-        timeText = `${diffMinutes} minute${diffMinutes === 1 ? "" : "s"} ago`;
+        timeText = `${diffMinutes} minut${diffMinutes === 1 ? "" : "ter"} siden`;
       } else if (diffMinutes < 1440) {
         const hours = Math.floor(diffMinutes / 60);
-        timeText = `${hours} hour${hours === 1 ? "" : "s"} ago`;
+        timeText = `${hours} time${hours === 1 ? "" : "r"} siden`;
       } else {
         timeText =
           syncDate.toLocaleDateString() +
@@ -239,10 +240,10 @@ const SyncUI = {
           });
       }
 
-      timeElement.textContent = `Last synced: ${timeText}`;
+      timeElement.textContent = `Sidst synkroniseret: ${timeText}`;
       timeElement.style.display = "block";
     } else {
-      timeElement.textContent = "Never synced";
+      timeElement.textContent = "Aldrig synkroniseret";
       timeElement.style.display = "block";
     }
   },
@@ -251,47 +252,47 @@ const SyncUI = {
   handlers: {
     onlineStatusChange: async function () {
       if (navigator.onLine) {
-        // First update UI to show we're back online
+        // Opdaterer UI til online
         this.updateAppState(this.APP_STATES.ONLINE);
 
         try {
-          // Check if there are any pending changes
+          // Tjekker om der er ventende ændringer
           const pendingChanges = await SnippetStorage.getPendingChanges();
 
           if (pendingChanges && pendingChanges.length > 0) {
-            // If we have pending changes, start syncing
+            // Hvis der er ventende ændringer, start synkronisering
             this.updateAppState(
               this.APP_STATES.SYNCING,
-              `Syncing ${pendingChanges.length} changes...`
+              `Synkroniserer ${pendingChanges.length} ændringer...`
             );
 
-            // Try background sync first
+            // Prøv background sync først
             const registered = await SnippetStorage.registerBackgroundSync();
 
-            // If background sync is not supported or registration failed, do manual sync
+            // Hvis background sync ikke er understøttet, brug manuel sync
             if (!registered) {
               const result = await SnippetStorage.syncAll();
               if (result.success) {
                 this.updateAppState(
                   this.APP_STATES.SYNC_SUCCESS,
-                  "All changes synced"
+                  "Alle ændringer synkroniseret"
                 );
               } else {
                 this.updateAppState(
                   this.APP_STATES.SYNC_ERROR,
-                  "Failed to sync changes"
+                  "Kunne ikke synkronisere ændringer"
                 );
               }
             }
           }
 
-          // Refresh snippets display
+          // Opdaterer snippets i UI
           await SnippetUI.renderSnippets();
         } catch (error) {
-          console.error("Error during online sync:", error);
+          console.error("Fejl under online synk:", error);
           this.updateAppState(
             this.APP_STATES.SYNC_ERROR,
-            "Error syncing changes"
+            "Fejl under synkronisering af ændringer"
           );
         }
       }
@@ -304,16 +305,16 @@ const SyncUI = {
     },
 
     syncButtonClick: async function () {
-      this.updateAppState(this.APP_STATES.SYNCING, "Starting sync...");
+      this.updateAppState(this.APP_STATES.SYNCING, "Starter synkronisering...");
 
       try {
         const result = await SnippetStorage.syncAll();
 
-        // Refresh snippets display after sync
+        // Opdaterer snippets i UI efter sync
         await SnippetUI.renderSnippets();
       } catch (error) {
-        console.error("Error during manual sync:", error);
-        this.updateAppState(this.APP_STATES.SYNC_ERROR, "Sync failed");
+        console.error("Fejl under manuel synk:", error);
+        this.updateAppState(this.APP_STATES.SYNC_ERROR, "Synkronisering fejlede");
       }
     },
 

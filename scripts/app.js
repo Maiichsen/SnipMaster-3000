@@ -1,28 +1,28 @@
-// Initialize the application when the DOM is loaded
+// Initialiserer applikationen, når DOM er loaded
 document.addEventListener("DOMContentLoaded", async function () {
   try {
-    // First migrate data from localStorage to IndexedDB
+    // Først migrer data fra localStorage til IndexedDB
     await SnippetStorage.migrateFromLocalStorage();
 
-    // Initialize the UI modules
+    // Initialiser UI-modulerne
     await SnippetUI.init();
     SyncUI.init();
 
-    // Set up the code editor and preview functionality
+    // Sætter event listeners og preview for kodeeditoren
     setupCodeEditor();
 
-    console.log("SnipMaster 3000 initialized successfully");
+    console.log("SnipMaster 3000 initialiseret med succes");
   } catch (error) {
-    console.error("Error initializing application:", error);
+    console.error("Fejl under initialisering af applikationen:", error);
   }
 });
 
-// Set up code editor and preview functionality
+// Sætter event listeners og preview for kodeeditoren
 function setupCodeEditor() {
   const codeEditor = document.getElementById("codeEditor");
   const languageSelect = document.getElementById("languageSelect");
 
-  // Update the preview when content changes
+  // Opdaterer preview, når indholdet ændres
   if (codeEditor) {
     codeEditor.addEventListener("input", updatePreview);
   }
@@ -31,11 +31,11 @@ function setupCodeEditor() {
     languageSelect.addEventListener("change", updatePreview);
   }
 
-  // Initial preview update
+  // Første gang opdateres preview
   updatePreview();
 }
 
-// Update code preview with syntax highlighting
+// Opdaterer kodepreview med syntax highlighting
 function updatePreview() {
   const codeEditor = document.getElementById("codeEditor");
   const languageSelect = document.getElementById("languageSelect");
@@ -50,20 +50,20 @@ function updatePreview() {
     code
   )}</code></pre>`;
 
-  // Apply highlighting if hljs is available
+  // Anvender highlighting hvis hljs er tilgængelig
   if ("hljs" in window) {
     hljs.highlightElement(previewDiv.querySelector("code"));
   }
 }
 
-// Helper function to escape HTML
+// Hjælpefunktion til at escape HTML (for at undgå XSS)
 function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
 
-// Initialize connection status display
+// Opdaterer forbindelsesstatus (online/offline) i UI
 function updateConnectionStatus() {
   const statusElement = document.getElementById("connection-status");
   if (!statusElement) return;
@@ -77,29 +77,29 @@ function updateConnectionStatus() {
   }
 }
 
-// PWA Installation
+// Håndterer PWA installationsprompt og install-knap
 let deferredPrompt;
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  // Prevent Chrome from automatically showing the prompt
+  // Forhindrer Chrome i automatisk at vise prompten
   e.preventDefault();
 
-  // Stash the event so it can be triggered later
+  // Gemmer begivenheden, så den kan aktiveres senere
   deferredPrompt = e;
 
-  // Show the install button
+  // Viser installationsknappen
   const installButton = document.getElementById("install-button");
   if (installButton) {
     installButton.style.display = "block";
 
     installButton.addEventListener("click", () => {
-      // Show the install prompt
+      // Viser installationsprompten
       deferredPrompt.prompt();
 
-      // Wait for the user to respond to the prompt
+      // Venter på, at brugeren reagerer på prompten
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
-          console.log("User accepted the installation");
+          console.log("Brugeren accepterede installationen");
           installButton.style.display = "none";
         }
         deferredPrompt = null;
@@ -108,16 +108,16 @@ window.addEventListener("beforeinstallprompt", (e) => {
   }
 });
 
-// Hide button when app is installed
+// Skjuler installationsknap, når appen er installeret
 window.addEventListener("appinstalled", () => {
-  console.log("Application installed");
+  console.log("Applikationen er installeret");
   const installButton = document.getElementById("install-button");
   if (installButton) {
     installButton.style.display = "none";
   }
 });
 
-// Register the Service Worker
+// Registrerer Service Worker for offline-funktionalitet
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -125,18 +125,18 @@ function registerServiceWorker() {
         .register("/sw.js")
         .then((registration) => {
           console.log(
-            "ServiceWorker registration successful with scope:",
+            "ServiceWorker registrering lykkedes med scope:",
             registration.scope
           );
         })
         .catch((error) => {
-          console.error("ServiceWorker registration failed:", error);
+          console.error("ServiceWorker registrering fejlede:", error);
         });
     });
   } else {
-    console.log("Service Workers not supported in this browser.");
+    console.log("Service Workers understøttes ikke i denne browser.");
   }
 }
 
-// Call the registration function
+// Kalder registreringsfunktionen for Service Worker
 registerServiceWorker();
