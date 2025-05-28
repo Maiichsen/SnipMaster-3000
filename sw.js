@@ -173,8 +173,8 @@ async function markSnippetSynced(id) {
         };
     });
 }
-//Fetch 
-// Fetch event listener with different strategies
+
+// Fetch event listener - Med caching strategier
 self.addEventListener('fetch', event => {
     // Skip cache if the request explicitly asks for fresh content
     if (event.request.headers.get('Cache-Control') === 'no-cache') {

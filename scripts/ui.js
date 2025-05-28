@@ -92,7 +92,7 @@ const SnippetUI = {
     
     // Tilføjer event listeners til snippet-elementer
     addSnippetEventListeners: function() {
-        // Klik på snippet-element
+        // Funktion til når man trykker på en snippet
         this.elements.snippetList.querySelectorAll('.snippet-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 if (!e.target.matches('.delete-btn') && !e.target.matches('.sync-item-btn')) {
@@ -102,7 +102,7 @@ const SnippetUI = {
             });
         });
         
-        // Klik på slet-knap
+        // Slet funktion for de enkelte snippets
         this.elements.snippetList.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -111,7 +111,7 @@ const SnippetUI = {
             });
         });
         
-        // Klik på synkroniseringsknap for enkelt snippet
+        // Synkroniserings funktion for de enkelte snippets
         this.elements.snippetList.querySelectorAll('.sync-item-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
